@@ -64,8 +64,10 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.glide)
     implementation(libs.paging.runtime)
+    implementation(libs.glide.recyclerview)
 
     kapt(libs.hilt.compiler)
+    kapt(libs.glide)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

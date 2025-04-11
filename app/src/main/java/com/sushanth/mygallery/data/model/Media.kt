@@ -8,5 +8,6 @@ data class Media(
     val filePath: String,
     val folderName: String,
     val dateAdded: Long,
-    val isVideo: Boolean
+    val isVideo: Boolean,
+    val videoDuration: Long? = null
 )

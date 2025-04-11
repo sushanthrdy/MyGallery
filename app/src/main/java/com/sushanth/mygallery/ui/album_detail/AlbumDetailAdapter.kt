@@ -7,6 +7,7 @@ import com.sushanth.mygallery.data.model.Media
 import com.sushanth.mygallery.databinding.MediaItemBinding
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import com.sushanth.mygallery.utils.Utils.formatDuration
 
 class AlbumDetailAdapter(private val onItemClick: (Media) -> Unit) :
     PagingDataAdapter<Media, AlbumDetailAdapter.MediaViewHolder>(MediaDiffCallback()) {
@@ -27,6 +28,10 @@ class AlbumDetailAdapter(private val onItemClick: (Media) -> Unit) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(media: Media, onItemClick: (Media) -> Unit) {
             binding.media = media
+
+            if (media.isVideo) {
+                binding.videoDurationTv.text = formatDuration(media.videoDuration)
+            }
 
             itemView.setOnClickListener {
                 onItemClick(media)

@@ -23,10 +23,9 @@
             android:id="@+id/mediaHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
             tools:text="Camera"
-            android:textSize="24sp"
+            android:textSize="@dimen/header_text_size"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/backArrow"
             app:layout_constraintTop_toTopOf="parent" />

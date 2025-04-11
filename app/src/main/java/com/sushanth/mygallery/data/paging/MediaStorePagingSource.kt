@@ -26,7 +26,8 @@ class MediaStorePagingSource(
             MediaStore.Files.FileColumns.MEDIA_TYPE,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.Files.FileColumns.DATE_ADDED
+            MediaStore.Files.FileColumns.DATE_ADDED,
+            MediaStore.Files.FileColumns.DURATION,
         )
 
         val (selection, selectionArgs) = when (bucketName) {
@@ -104,6 +105,8 @@ class MediaStorePagingSource(
                 cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
             val dateAddedColumn =
                 cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_ADDED)
+            val videoDurationColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DURATION)
 
             while (cursor.moveToNext() && mediaList.size < pageSize) {
                 val id = cursor.getLong(idColumn)
@@ -117,6 +120,12 @@ class MediaStorePagingSource(
                 }
                 val folder = cursor.getString(bucketColumn)?:MediaBucketType.INTERNAL_STORAGE.label
                 val dateAdded = cursor.getLong(dateAddedColumn)
+
+                val videoDuration = if (mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO) {
+                    cursor.getLong(videoDurationColumn)
+                } else {
+                    null
+                }
 
                 val contentUri = when (mediaType) {
                     MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE ->
@@ -135,7 +144,8 @@ class MediaStorePagingSource(
                         filePath = filePath,
                         folderName = folder,
                         dateAdded = dateAdded,
-                        isVideo = mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
+                        isVideo = mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO,
+                        videoDuration = videoDuration
                     )
                 )
             }

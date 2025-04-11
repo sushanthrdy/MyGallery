@@ -38,6 +38,7 @@ androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecy
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
 glide = { group = "com.github.bumptech.glide", name = "glide",version.ref = "glide"}
+glide-recyclerview = { group = "com.github.bumptech.glide", name ="recyclerview-integration", version.ref = "glide"}
 paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 
 [plugins]

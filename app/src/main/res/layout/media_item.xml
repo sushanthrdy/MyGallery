@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <data>
+        <import type="android.view.View"/>
         <variable
             name="media"
             type="com.sushanth.mygallery.data.model.Media" />
     </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -22,9 +26,27 @@
                 android:id="@+id/mediaThumbnailIv"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:contentDescription="@string/media_thumbnail_cd"
                 android:scaleType="centerCrop"
-                app:imageUri="@{media.contentUri}"
-                android:contentDescription="@string/media_thumbnail_cd"/>
+                app:imageUri="@{media.contentUri}" />
+
+            <TextView
+                android:id="@+id/videoDurationTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:background="@drawable/bg_duration"
+                android:paddingEnd="6dp"
+                android:gravity="center_vertical"
+                app:drawableStartCompat="@drawable/baseline_play_arrow_24"
+                android:drawablePadding="2dp"
+                tools:text="00:45"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@android:color/white"
+                android:visibility="@{media.isVideo ? View.VISIBLE : View.GONE}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
