@@ -4,9 +4,16 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.sushanth.mygallery.data.model.Album
+import com.sushanth.mygallery.data.model.Media
+import com.sushanth.mygallery.data.model.MediaBucketType
+import com.sushanth.mygallery.data.paging.MediaStorePagingSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -26,12 +33,12 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
         )
 
         // Extract All Images and All Videos separately
-        val allImagesAlbum = imageAlbums.firstOrNull { it.name == "All Images" && it.itemCount > 0 }
-        val allVideosAlbum = videoAlbums.firstOrNull { it.name == "All Videos" && it.itemCount > 0 }
+        val allImagesAlbum = imageAlbums.firstOrNull { it.name == MediaBucketType.ALL_IMAGES.label && it.itemCount > 0 }
+        val allVideosAlbum = videoAlbums.firstOrNull { it.name == MediaBucketType.ALL_VIDEOS.label && it.itemCount > 0 }
 
         // Exclude All Images and All Videos from the regular albums list
         val otherAlbums = (imageAlbums + videoAlbums)
-            .filterNot { it.name == "All Images" || it.name == "All Videos" }
+            .filterNot { it.name == MediaBucketType.ALL_IMAGES.label || it.name == MediaBucketType.ALL_VIDEOS.label }
 
         otherAlbums.forEach { album ->
             val existing = albumMap[album.name]
@@ -76,7 +83,7 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idIndex)
-                val bucketName = cursor.getString(bucketNameIndex) ?: "Internal Storage"
+                val bucketName = cursor.getString(bucketNameIndex) ?: MediaBucketType.INTERNAL_STORAGE.label
                 val path = cursor.getString(dataIndex)?.lowercase() ?: continue
 
                 if (path.contains("/cache") || path.contains(".nomedia") || path.contains("thumbnails")) {
@@ -99,7 +106,7 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
 
         return listOf(
             Album(
-                if (isVideo) "All Videos" else "All Images",
+                if (isVideo) MediaBucketType.ALL_VIDEOS.label else MediaBucketType.ALL_IMAGES.label,
                 mediaCount,
                 thumbnailUri,
                 listOf()
@@ -112,5 +119,14 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
                 mediaItems = emptyList()
             )
         }
+    }
+
+    fun getPagedMedia(bucketName: String): Flow<PagingData<Media>> {
+        return Pager(
+            config = PagingConfig(pageSize = 100, prefetchDistance = 80, enablePlaceholders = false),
+            pagingSourceFactory = {
+                MediaStorePagingSource(context, bucketName)
+            }
+        ).flow
     }
 }

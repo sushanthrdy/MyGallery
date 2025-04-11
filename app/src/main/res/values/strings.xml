@@ -4,4 +4,6 @@
     <string name="all_albums">All albums</string>
     <string name="album_thumbnail_image_cd">Album thumbnail image</string>
     <string name="no_photos_and_videos">No photos and videos in the device</string>
+    <string name="media_thumbnail_cd">media thumbnail cd</string>
+    <string name="back_button">back button</string>
 </resources>

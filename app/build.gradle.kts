@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.glide)
+    implementation(libs.paging.runtime)
 
     kapt(libs.hilt.compiler)
 

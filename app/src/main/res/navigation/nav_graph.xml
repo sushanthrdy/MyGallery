@@ -9,6 +9,19 @@
         android:id="@+id/albumListFragment"
         android:name="com.sushanth.mygallery.ui.album_list.AlbumListFragment"
         android:label="fragment_album_list"
-        tools:layout="@layout/fragment_album_list" />
+        tools:layout="@layout/fragment_album_list" >
+        <action
+            android:id="@+id/action_albumListFragment_to_albumDetailFragment"
+            app:destination="@id/albumDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/albumDetailFragment"
+        android:name="com.sushanth.mygallery.ui.album_detail.AlbumDetailFragment"
+        tools:layout="@layout/fragment_album_detail"
+        android:label="AlbumDetailFragment" >
+        <argument
+            android:name="bucketName"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

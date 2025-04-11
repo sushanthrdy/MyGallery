@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumListBinding
@@ -24,9 +25,13 @@ class AlbumListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding =  FragmentAlbumListBinding.inflate(inflater, container, false)
-        binding.albumsRv.layoutManager = GridLayoutManager(requireContext(), 3)
-        val spacingInPixels = resources.getDimensionPixelSize(R.dimen.grid_spacing)
-        binding.albumsRv.addItemDecoration(GridSpacingItemDecoration(3, spacingInPixels, true))
+        binding.albumsRv.apply {
+            layoutManager = GridLayoutManager(requireContext(), 3)
+            val spacingInPixels = resources.getDimensionPixelSize(R.dimen.grid_spacing)
+            addItemDecoration(GridSpacingItemDecoration(3, spacingInPixels, true))
+            setHasFixedSize(true)
+        }
+
         return binding.root
     }
 
@@ -38,7 +43,8 @@ class AlbumListFragment : Fragment() {
 
         viewModel.albums.observe(viewLifecycleOwner) { albumList ->
             albumAdapter = AlbumListAdapter(albumList) { clickedAlbum ->
-
+                val action = AlbumListFragmentDirections.actionAlbumListFragmentToAlbumDetailFragment(clickedAlbum.name)
+                findNavController().navigate(action)
             }
             binding.albumsRv.adapter = albumAdapter
         }
