@@ -33,6 +33,9 @@ class AlbumListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.lifecycleOwner = viewLifecycleOwner
+        binding.viewmodel = viewModel
+
         viewModel.albums.observe(viewLifecycleOwner) { albumList ->
             albumAdapter = AlbumListAdapter(albumList) { clickedAlbum ->
 

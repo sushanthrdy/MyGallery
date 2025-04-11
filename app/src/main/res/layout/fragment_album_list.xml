@@ -3,6 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewmodel"
+            type="com.sushanth.mygallery.ui.album_list.AlbumListViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,14 +33,29 @@
             android:id="@+id/albumsRv"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="16dp"
             android:layout_marginStart="4dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="4dp"
+            android:visibility="@{viewmodel.albums.size()!=0? View.VISIBLE : View.GONE}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/allAlbumsHeader"
             tools:listitem="@layout/album_item" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/no_photos_and_videos"
+            android:paddingHorizontal="16dp"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="@{viewmodel.albums.size()==0 ? View.VISIBLE : View.GONE}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/allAlbumsHeader" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
