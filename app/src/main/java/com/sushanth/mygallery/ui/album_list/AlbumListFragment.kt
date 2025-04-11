@@ -43,7 +43,7 @@ class AlbumListFragment : Fragment() {
 
         viewModel.albums.observe(viewLifecycleOwner) { albumList ->
             albumAdapter = AlbumListAdapter(albumList) { clickedAlbum ->
-                val action = AlbumListFragmentDirections.actionAlbumListFragmentToAlbumDetailFragment(clickedAlbum.name)
+                val action = AlbumListFragmentDirections.actionAlbumListFragmentToAlbumDetailFragment(clickedAlbum.name, clickedAlbum.videoCount, clickedAlbum.imageCount)
                 findNavController().navigate(action)
             }
             binding.albumsRv.adapter = albumAdapter

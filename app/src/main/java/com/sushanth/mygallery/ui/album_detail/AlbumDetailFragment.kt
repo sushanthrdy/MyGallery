@@ -2,6 +2,7 @@ package com.sushanth.mygallery.ui.album_detail
 
 import androidx.fragment.app.viewModels
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -30,15 +31,36 @@ class AlbumDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding =  FragmentAlbumDetailBinding.inflate(inflater, container, false)
-        binding.mediaHeader.text = args.bucketName
+
+        Log.i("MyTag", "imageCount: ${args.imageCount} || videoCount: ${args.videoCount}")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.mediaHeader.text = args.bucketName
+        setMediaCountSubHeader()
         setOnClickListeners()
         setupAdapter()
         setupRecyclerView()
         observeMedia()
+    }
+
+    private fun setMediaCountSubHeader(
+        imageCount: Int = args.imageCount,
+        videoCount: Int = args.videoCount
+    ) {
+        val context = requireContext()
+        val imageText = if (imageCount > 0) {
+            context.resources.getQuantityString(R.plurals.image_count, imageCount, imageCount)
+        } else null
+
+        val videoText = if (videoCount > 0) {
+            context.resources.getQuantityString(R.plurals.video_count, videoCount, videoCount)
+        } else null
+
+        val mediaCount = listOfNotNull(imageText, videoText).joinToString(" ")
+
+        binding.mediaCountTv.text = mediaCount
     }
 
     private fun setOnClickListeners() {

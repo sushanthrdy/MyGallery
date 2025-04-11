@@ -22,6 +22,12 @@
         <argument
             android:name="bucketName"
             app:argType="string" />
+        <argument
+            android:name="videoCount"
+            app:argType="integer" />
+        <argument
+            android:name="imageCount"
+            app:argType="integer" />
     </fragment>
 
 </navigation>

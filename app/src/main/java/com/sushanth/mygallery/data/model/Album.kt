@@ -6,5 +6,7 @@ data class Album(
     val name: String,
     val itemCount: Int,
     val thumbnailUri: Uri?,
-    val mediaItems: List<Media>
+    val mediaItems: List<Media>,
+    val imageCount: Int = 0,
+    val videoCount: Int = 0
 )

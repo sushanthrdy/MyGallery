@@ -6,4 +6,13 @@
     <string name="no_photos_and_videos">No photos and videos in the device</string>
     <string name="media_thumbnail_cd">media thumbnail cd</string>
     <string name="back_button">back button</string>
+    <plurals name="image_count">
+        <item quantity="one">%d image</item>
+        <item quantity="other">%d images</item>
+    </plurals>
+
+    <plurals name="video_count">
+        <item quantity="one">%d video</item>
+        <item quantity="other">%d videos</item>
+    </plurals>
 </resources>

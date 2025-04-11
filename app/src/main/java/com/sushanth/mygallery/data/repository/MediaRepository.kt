@@ -47,7 +47,9 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
             } else {
                 albumMap[album.name] = existing.copy(
                     itemCount = existing.itemCount + album.itemCount,
-                    thumbnailUri = album.thumbnailUri ?: existing.thumbnailUri
+                    thumbnailUri = album.thumbnailUri ?: existing.thumbnailUri,
+                    imageCount = existing.imageCount + album.imageCount,
+                    videoCount = existing.videoCount + album.videoCount
                 )
             }
         }
@@ -106,17 +108,21 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
 
         return listOf(
             Album(
-                if (isVideo) MediaBucketType.ALL_VIDEOS.label else MediaBucketType.ALL_IMAGES.label,
-                mediaCount,
-                thumbnailUri,
-                listOf()
+                name = if (isVideo) MediaBucketType.ALL_VIDEOS.label else MediaBucketType.ALL_IMAGES.label,
+                itemCount = mediaCount,
+                thumbnailUri = thumbnailUri,
+                mediaItems = listOf(),
+                imageCount = if (!isVideo) mediaCount else 0,
+                videoCount = if (isVideo) mediaCount else 0
             )
         ) + albumMap.map { (folderName, value) ->
             Album(
                 name = folderName,
                 itemCount = value.second,
                 thumbnailUri = value.first,
-                mediaItems = emptyList()
+                mediaItems = emptyList(),
+                imageCount = if (!isVideo) value.second else 0,
+                videoCount = if (isVideo) value.second else 0
             )
         }
     }
