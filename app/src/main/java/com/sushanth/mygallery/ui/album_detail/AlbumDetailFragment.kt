@@ -7,10 +7,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumDetailBinding
@@ -81,12 +83,28 @@ class AlbumDetailFragment : Fragment() {
     private fun setupRecyclerView() {
         binding.mediaRv.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
-            val spacingInPixels = resources.getDimensionPixelSize(R.dimen.grid_spacing)
+            val spacingInPixels = resources.getDimensionPixelSize(R.dimen.grid_spacing_small)
             addItemDecoration(GridSpacingItemDecoration(3, spacingInPixels, true))
             adapter = mediaAdapter
             setHasFixedSize(true)
             setItemViewCacheSize(40)
             itemAnimator = null
+        }
+
+        binding.mediaRv.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 10 && !binding.fabScrollToTop.isVisible) {
+                    binding.fabScrollToTop.show()
+                }
+                if (!recyclerView.canScrollVertically(-1)) {
+                    binding.fabScrollToTop.hide()
+                }
+            }
+        })
+        binding.fabScrollToTop.setOnClickListener {
+            binding.mediaRv.smoothScrollToPosition(0)
         }
     }
 

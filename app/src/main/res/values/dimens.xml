@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="grid_spacing">8dp</dimen>
+    <dimen name="grid_spacing_small">4dp</dimen>
     <dimen name="header_text_size">20sp</dimen>
     <dimen name="_11_sp">11sp</dimen>
     <dimen name="_12_sp">12sp</dimen>
