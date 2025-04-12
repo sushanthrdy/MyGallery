@@ -21,6 +21,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ImageButton
+            android:id="@+id/toggleLayoutButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_16_dp"
+            android:padding="@dimen/_8_dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/baseline_view_list_24"
+            android:contentDescription="@string/toggle_to_switch_between_grid_and_list"
+            app:layout_constraintBottom_toBottomOf="@+id/allAlbumsHeader"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/allAlbumsHeader" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/albumsRv"
             android:layout_width="0dp"

@@ -18,6 +18,8 @@ class AlbumListViewModel @Inject constructor(private val mediaRepository: MediaR
     private val _albumUIState = MutableLiveData<UIState<List<Album>>>()
     val albumUIState: LiveData<UIState<List<Album>>> = _albumUIState
 
+    var isGrid = true
+
     init {
         fetchAlbums()
     }
