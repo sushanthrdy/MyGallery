@@ -2,6 +2,7 @@ package com.sushanth.mygallery.ui.album_detail
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.sushanth.mygallery.data.model.Media
 import com.sushanth.mygallery.databinding.MediaItemBinding
@@ -29,8 +30,11 @@ class AlbumDetailAdapter(private val onItemClick: (Media) -> Unit) :
         fun bind(media: Media, onItemClick: (Media) -> Unit) {
             binding.media = media
 
+            binding.videoDurationTv.isVisible = media.isVideo
             if (media.isVideo) {
                 binding.videoDurationTv.text = formatDuration(media.videoDuration)
+            }else {
+                binding.videoDurationTv.text = ""
             }
 
             itemView.setOnClickListener {

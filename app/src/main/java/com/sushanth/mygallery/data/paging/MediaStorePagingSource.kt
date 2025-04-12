@@ -160,5 +160,5 @@ class MediaStorePagingSource(
         )
     }
 
-    override fun getRefreshKey(state: PagingState<Long, Media>): Long? = null
+    override fun getRefreshKey(state: PagingState<Long, Media>): Long? = state.anchorPosition?.let { state.closestItemToPosition(it)?.dateAdded }
 }
