@@ -2,4 +2,11 @@
 <resources>
     <dimen name="grid_spacing">8dp</dimen>
     <dimen name="header_text_size">20sp</dimen>
+    <dimen name="_11_sp">11sp</dimen>
+    <dimen name="_12_sp">12sp</dimen>
+    <dimen name="_16_dp">16dp</dimen>
+    <dimen name="_16_sp">16sp</dimen>
+    <dimen name="_24_dp">24dp</dimen>
+    <dimen name="_4_dp">4dp</dimen>
+    <dimen name="_8_dp">8dp</dimen>
 </resources>

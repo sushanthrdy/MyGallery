@@ -15,7 +15,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:cardElevation="0dp"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="@dimen/_16_dp"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -42,8 +42,8 @@
             app:layout_constraintTop_toBottomOf="@id/imageCard"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingTop="4dp"
-            android:paddingHorizontal="4dp" />
+            android:paddingTop="@dimen/_4_dp"
+            android:paddingHorizontal="@dimen/_4_dp" />
 
         <TextView
             android:id="@+id/mediaCountTv"
@@ -51,13 +51,13 @@
             android:layout_height="wrap_content"
             android:text='@{String.valueOf(album.itemCount)}'
             android:textColor="@android:color/darker_gray"
-            android:textSize="12sp"
+            android:textSize="@dimen/_12_sp"
             android:maxLines="1"
             app:layout_constraintTop_toBottomOf="@id/albumNameTv"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="8dp"
-            android:paddingHorizontal="4dp" />
+            android:paddingBottom="@dimen/_8_dp"
+            android:paddingHorizontal="@dimen/_4_dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
