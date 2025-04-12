@@ -6,20 +6,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sushanth.mygallery.data.model.Album
 import com.sushanth.mygallery.data.repository.MediaRepository
+import com.sushanth.mygallery.ui.UIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AlbumListViewModel @Inject constructor(private val mediaRepository: MediaRepository) : ViewModel() {
+class AlbumListViewModel @Inject constructor(private val mediaRepository: MediaRepository) :
+    ViewModel() {
 
-    private val _albums = MutableLiveData<List<Album>>()
-    val albums: LiveData<List<Album>> = _albums
+    private val _albumUIState = MutableLiveData<UIState<List<Album>>>()
+    val albumUIState: LiveData<UIState<List<Album>>> = _albumUIState
 
     init {
+        fetchAlbums()
+    }
+
+    private fun fetchAlbums() {
         viewModelScope.launch {
-            val allAlbums = mediaRepository.fetchAllAlbums()
-            _albums.value = allAlbums
+            _albumUIState.value = UIState.Loading
+            val albums = mediaRepository.fetchAllAlbums()
+            _albumUIState.value = UIState.Success(albums)
         }
     }
 }

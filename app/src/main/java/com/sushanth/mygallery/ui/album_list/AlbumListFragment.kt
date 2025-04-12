@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumListBinding
+import com.sushanth.mygallery.ui.UIState
 import com.sushanth.mygallery.utils.GridSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -38,15 +40,35 @@ class AlbumListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.lifecycleOwner = viewLifecycleOwner
-        binding.viewmodel = viewModel
+        viewModel.albumUIState.observe(viewLifecycleOwner) { state ->
+            when(state){
+                is UIState.Loading -> {
+                    binding.progressBar.isVisible = true
+                    binding.noMediaTv.isVisible = false
+                    binding.albumsRv.isVisible = false
+                    binding.albumsRv.adapter = null
+                }
+                is UIState.Success -> {
+                    binding.progressBar.isVisible = false
+                    binding.albumsRv.isVisible = state.data.isNotEmpty()
+                    binding.noMediaTv.isVisible = state.data.isEmpty()
+                    if (state.data.isEmpty()) {
+                        binding.albumsRv.adapter = null
+                    }else{
 
-        viewModel.albums.observe(viewLifecycleOwner) { albumList ->
-            albumAdapter = AlbumListAdapter(albumList) { clickedAlbum ->
-                val action = AlbumListFragmentDirections.actionAlbumListFragmentToAlbumDetailFragment(clickedAlbum.name, clickedAlbum.videoCount, clickedAlbum.imageCount)
-                findNavController().navigate(action)
+                        albumAdapter = AlbumListAdapter(state.data) { clickedAlbum ->
+                            val action =
+                                AlbumListFragmentDirections.actionAlbumListFragmentToAlbumDetailFragment(
+                                    clickedAlbum.name,
+                                    clickedAlbum.videoCount,
+                                    clickedAlbum.imageCount
+                                )
+                            findNavController().navigate(action)
+                        }
+                        binding.albumsRv.adapter = albumAdapter
+                    }
+                }
             }
-            binding.albumsRv.adapter = albumAdapter
         }
     }
 }
