@@ -6,6 +6,7 @@
     <string name="no_photos_and_videos">No photos and videos in the device</string>
     <string name="media_thumbnail_cd">media thumbnail cd</string>
     <string name="back_button">back button</string>
+    <string name="toggle_to_switch_between_grid_and_list">toggle to switch between grid and list</string>
     <plurals name="image_count">
         <item quantity="one">%d image</item>
         <item quantity="other">%d images</item>
