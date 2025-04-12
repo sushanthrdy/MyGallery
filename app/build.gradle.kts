@@ -65,6 +65,10 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.paging.runtime)
     implementation(libs.glide.recyclerview)
+    implementation(libs.photoview)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+
 
     kapt(libs.hilt.compiler)
     kapt(libs.glide)

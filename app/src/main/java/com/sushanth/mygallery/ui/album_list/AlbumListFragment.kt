@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumListBinding
-import com.sushanth.mygallery.ui.UIState
+import com.sushanth.mygallery.utils.UIState
 import com.sushanth.mygallery.utils.GridSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 

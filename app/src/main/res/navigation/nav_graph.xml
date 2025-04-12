@@ -28,6 +28,21 @@
         <argument
             android:name="imageCount"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_albumDetailFragment_to_mediaViewFragment"
+            app:destination="@id/mediaViewFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/mediaViewFragment"
+        android:name="com.sushanth.mygallery.ui.media_view.MediaViewFragment"
+        android:label="MediaViewFragment"
+        tools:layout="@layout/fragment_media_view">
+        <argument
+            android:name="mediaUri"
+            app:argType="string" />
+        <argument
+            android:name="isVideo"
+            app:argType="boolean" />
     </fragment>
 
 </navigation>

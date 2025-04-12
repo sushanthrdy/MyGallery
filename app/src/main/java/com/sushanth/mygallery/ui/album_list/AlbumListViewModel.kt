@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sushanth.mygallery.data.model.Album
 import com.sushanth.mygallery.data.repository.MediaRepository
-import com.sushanth.mygallery.ui.UIState
+import com.sushanth.mygallery.utils.UIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

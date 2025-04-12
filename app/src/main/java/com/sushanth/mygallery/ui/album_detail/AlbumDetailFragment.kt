@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
+import com.bumptech.glide.Glide
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumDetailBinding
 import com.sushanth.mygallery.utils.GridSpacingItemDecoration
@@ -71,6 +72,9 @@ class AlbumDetailFragment : Fragment() {
 
     private fun setupAdapter() {
         mediaAdapter = AlbumDetailAdapter { media ->
+            Glide.with(requireContext()).load(media.contentUri).preload()
+            val action = AlbumDetailFragmentDirections.actionAlbumDetailFragmentToMediaViewFragment(media.contentUri.toString(),media.isVideo)
+            findNavController().navigate(action)
         }
     }
 

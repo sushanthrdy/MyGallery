@@ -1,4 +1,4 @@
-package com.sushanth.mygallery.ui
+package com.sushanth.mygallery.utils
 
 sealed class UIState<out T> {
     object Loading : UIState<Nothing>()
