@@ -12,7 +12,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumDetailViewModel @Inject constructor(private val repository: MediaRepository) : ViewModel() {
+    private var currentBucket: String? = null
+    private var mediaFlow: Flow<PagingData<Media>>? = null
+
     fun getPagedMedia(bucketName: String): Flow<PagingData<Media>> {
-        return repository.getPagedMedia(bucketName).cachedIn(viewModelScope)
+        if (mediaFlow == null || bucketName != currentBucket) {
+            currentBucket = bucketName
+            mediaFlow = repository.getPagedMedia(bucketName).cachedIn(viewModelScope)
+        }
+        return mediaFlow!!
     }
 }

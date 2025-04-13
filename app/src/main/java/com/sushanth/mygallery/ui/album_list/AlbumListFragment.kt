@@ -2,7 +2,6 @@ package com.sushanth.mygallery.ui.album_list
 
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,7 +48,6 @@ class AlbumListFragment : Fragment() {
             }
         }
         mediaContentObserver = MediaContentObserver {
-            Log.i("MyTag", "onChanged: ")
             viewModel.fetchAlbums()
         }
         requireContext().contentResolver.registerContentObserver(
@@ -65,14 +63,12 @@ class AlbumListFragment : Fragment() {
         viewModel.albumUIState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UIState.Loading -> {
-                    Log.i("MytAG", "loading: ")
                     binding.progressBar.isVisible = true
                     binding.noMediaTv.isVisible = false
                     binding.albumsRv.isVisible = false
                 }
 
                 is UIState.Success -> {
-                    Log.i("MytAG", "Success: ${state.data.isNotEmpty()}")
                     binding.progressBar.isVisible = false
                     binding.albumsRv.isVisible = state.data.isNotEmpty()
                     binding.noMediaTv.isVisible = state.data.isEmpty()
@@ -101,8 +97,9 @@ class AlbumListFragment : Fragment() {
     }
 
     override fun onDestroy() {
-        Log.i("MyTag", "onDestroy: ")
-        requireContext().contentResolver.unregisterContentObserver(mediaContentObserver)
+        if (::mediaContentObserver.isInitialized) {
+            requireContext().contentResolver.unregisterContentObserver(mediaContentObserver)
+        }
         super.onDestroy()
     }
 
