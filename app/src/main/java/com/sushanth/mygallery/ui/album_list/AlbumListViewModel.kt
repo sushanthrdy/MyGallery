@@ -24,7 +24,7 @@ class AlbumListViewModel @Inject constructor(private val mediaRepository: MediaR
         fetchAlbums()
     }
 
-    private fun fetchAlbums() {
+    fun fetchAlbums() {
         viewModelScope.launch {
             _albumUIState.value = UIState.Loading
             val albums = mediaRepository.fetchAllAlbums()

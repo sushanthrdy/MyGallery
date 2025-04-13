@@ -2,16 +2,17 @@ package com.sushanth.mygallery.ui.album_list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sushanth.mygallery.data.model.Album
 import com.sushanth.mygallery.databinding.AlbumItemBinding
 import com.sushanth.mygallery.databinding.AlbumListItemBinding
 
 class AlbumListAdapter(
-    private var albums: List<Album>,
     private var isGrid: Boolean = true,
     private val onItemClick: (Album) -> Unit
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+) : ListAdapter<Album,RecyclerView.ViewHolder>(AlbumDiffCallback()) {
 
     companion object {
         private const val GRID_VIEW_TYPE = 0
@@ -20,7 +21,7 @@ class AlbumListAdapter(
 
     fun updateLayout(isGrid: Boolean) {
         this.isGrid = isGrid
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, currentList.size)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -41,7 +42,7 @@ class AlbumListAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val album = albums[position]
+        val album = getItem(position)
         when (holder) {
             is GridViewHolder -> {
                 holder.bind(album)
@@ -53,7 +54,7 @@ class AlbumListAdapter(
         }
     }
 
-    override fun getItemCount(): Int = albums.size
+    override fun getItemCount(): Int = currentList.size
 
     override fun getItemViewType(position: Int): Int {
         return if (isGrid) GRID_VIEW_TYPE else LIST_VIEW_TYPE
@@ -72,6 +73,21 @@ class AlbumListAdapter(
         fun bind(album: Album) {
             binding.album = album
             binding.root.setOnClickListener { onItemClick(album) }
+        }
+    }
+
+    class AlbumDiffCallback : DiffUtil.ItemCallback<Album>() {
+        override fun areItemsTheSame(oldItem: Album, newItem: Album): Boolean {
+            // If albums are uniquely identified by name
+            return oldItem.name == newItem.name
+        }
+
+        override fun areContentsTheSame(oldItem: Album, newItem: Album): Boolean {
+            return oldItem.name == newItem.name &&
+                    oldItem.itemCount == newItem.itemCount &&
+                    oldItem.imageCount == newItem.imageCount &&
+                    oldItem.videoCount == newItem.videoCount &&
+                    oldItem.thumbnailUri?.toString().equals(newItem.thumbnailUri?.toString())
         }
     }
 }

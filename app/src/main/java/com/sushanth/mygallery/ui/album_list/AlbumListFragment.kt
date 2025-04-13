@@ -1,6 +1,8 @@
 package com.sushanth.mygallery.ui.album_list
 
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,8 +14,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumListBinding
-import com.sushanth.mygallery.utils.UIState
 import com.sushanth.mygallery.utils.GridSpacingItemDecoration
+import com.sushanth.mygallery.utils.MediaContentObserver
+import com.sushanth.mygallery.utils.UIState
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,6 +25,7 @@ class AlbumListFragment : Fragment() {
     private val viewModel: AlbumListViewModel by viewModels()
     private lateinit var binding: FragmentAlbumListBinding
     private lateinit var albumAdapter: AlbumListAdapter
+    private lateinit var mediaContentObserver: MediaContentObserver
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,7 +33,6 @@ class AlbumListFragment : Fragment() {
     ): View {
         binding = FragmentAlbumListBinding.inflate(inflater, container, false)
         setupRecyclerView(viewModel.isGrid)
-
         return binding.root
     }
 
@@ -38,48 +41,69 @@ class AlbumListFragment : Fragment() {
 
         // Set up the toggle button click listener
         binding.toggleLayoutButton.setOnClickListener {
-            if (
-                binding.albumsRv.adapter!=null
-            ) {
+            if (binding.albumsRv.adapter != null) {
                 viewModel.isGrid = !viewModel.isGrid // Toggle the layout state
                 setupRecyclerView(viewModel.isGrid) // Update the layout
                 albumAdapter.updateLayout(viewModel.isGrid)
                 updateToggleButtonIcon(viewModel.isGrid) // Update the icon
             }
         }
-
+        mediaContentObserver = MediaContentObserver {
+            Log.i("MyTag", "onChanged: ")
+            viewModel.fetchAlbums()
+        }
+        requireContext().contentResolver.registerContentObserver(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mediaContentObserver
+        )
+        requireContext().contentResolver.registerContentObserver(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mediaContentObserver
+        )
         viewModel.albumUIState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UIState.Loading -> {
+                    Log.i("MytAG", "loading: ")
                     binding.progressBar.isVisible = true
                     binding.noMediaTv.isVisible = false
                     binding.albumsRv.isVisible = false
-                    binding.albumsRv.adapter = null
                 }
 
                 is UIState.Success -> {
+                    Log.i("MytAG", "Success: ${state.data.isNotEmpty()}")
                     binding.progressBar.isVisible = false
                     binding.albumsRv.isVisible = state.data.isNotEmpty()
                     binding.noMediaTv.isVisible = state.data.isEmpty()
                     if (state.data.isEmpty()) {
                         binding.albumsRv.adapter = null
                     } else {
-
-                        albumAdapter =
-                            AlbumListAdapter(state.data, viewModel.isGrid) { clickedAlbum ->
-                                val action =
-                                    AlbumListFragmentDirections.actionAlbumListFragmentToAlbumDetailFragment(
+                        if (binding.albumsRv.adapter!=null) {
+                            albumAdapter.submitList(state.data)
+                        } else {
+                            albumAdapter = AlbumListAdapter(viewModel.isGrid) { clickedAlbum ->
+                                val action = AlbumListFragmentDirections
+                                    .actionAlbumListFragmentToAlbumDetailFragment(
                                         clickedAlbum.name,
                                         clickedAlbum.videoCount,
                                         clickedAlbum.imageCount
                                     )
                                 findNavController().navigate(action)
                             }
-                        binding.albumsRv.adapter = albumAdapter
+                            binding.albumsRv.adapter = albumAdapter
+                            albumAdapter.submitList(state.data)
+                        }
                     }
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        Log.i("MyTag", "onDestroy: ")
+        requireContext().contentResolver.unregisterContentObserver(mediaContentObserver)
+        super.onDestroy()
     }
 
     private fun setupRecyclerView(isGrid: Boolean) {

@@ -1,6 +1,7 @@
 package com.sushanth.mygallery.data.repository
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
@@ -8,6 +9,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sushanth.mygallery.data.model.Album
+import com.sushanth.mygallery.data.model.BucketData
 import com.sushanth.mygallery.data.model.Media
 import com.sushanth.mygallery.data.model.MediaBucketType
 import com.sushanth.mygallery.data.paging.MediaStorePagingSource
@@ -21,55 +23,94 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
     private val contentResolver: ContentResolver = context.contentResolver
 
     suspend fun fetchAllAlbums(): List<Album> = withContext(Dispatchers.IO) {
-        val albumMap = mutableMapOf<String, Album>()
-
-        val imageAlbums = fetchAlbumsFromMediaStore(
+        val imageAlbums = fetchAlbumsFromStore(
             uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            isVideo = false
+            mediaType = MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
         )
-        val videoAlbums = fetchAlbumsFromMediaStore(
+        val videoAlbums = fetchAlbumsFromStore(
             uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            isVideo = true
+            mediaType = MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
         )
 
-        // Extract All Images and All Videos separately
-        val allImagesAlbum = imageAlbums.firstOrNull { it.name == MediaBucketType.ALL_IMAGES.label && it.itemCount > 0 }
-        val allVideosAlbum = videoAlbums.firstOrNull { it.name == MediaBucketType.ALL_VIDEOS.label && it.itemCount > 0 }
+        val albumMap = mutableMapOf<String, BucketData>()
 
-        // Exclude All Images and All Videos from the regular albums list
-        val otherAlbums = (imageAlbums + videoAlbums)
-            .filterNot { it.name == MediaBucketType.ALL_IMAGES.label || it.name == MediaBucketType.ALL_VIDEOS.label }
+        var allImageCount = 0
+        var allVideoCount = 0
+        var allImageThumbnail: Uri? = null
+        var allVideoThumbnail: Uri? = null
 
-        otherAlbums.forEach { album ->
-            val existing = albumMap[album.name]
+        imageAlbums.forEach {
+            val existing = albumMap[it.name]
+            allImageCount += it.count
+            if (allImageThumbnail == null) allImageThumbnail = it.thumbnailUri
             if (existing == null) {
-                albumMap[album.name] = album
+                albumMap[it.name] = BucketData(it.name, it.count, 0, it.dateAdded, it.thumbnailUri)
             } else {
-                albumMap[album.name] = existing.copy(
-                    itemCount = existing.itemCount + album.itemCount,
-                    thumbnailUri = album.thumbnailUri ?: existing.thumbnailUri,
-                    imageCount = existing.imageCount + album.imageCount,
-                    videoCount = existing.videoCount + album.videoCount
-                )
+                existing.imageCount += it.count
+                if (it.dateAdded > existing.latestDate) {
+                    existing.thumbnailUri = it.thumbnailUri
+                    existing.latestDate = it.dateAdded
+                }
             }
         }
 
-        // Final list: All Images -> All Videos -> rest
-        val finalList = listOfNotNull(allImagesAlbum, allVideosAlbum) + albumMap.values
+        videoAlbums.forEach {
+            val existing = albumMap[it.name]
+            allVideoCount += it.count
+            if (allVideoThumbnail == null) allVideoThumbnail = it.thumbnailUri
+            if (existing == null) {
+                albumMap[it.name] = BucketData(it.name, 0, it.count, it.dateAdded, it.thumbnailUri)
+            } else {
+                existing.videoCount += it.count
+                if (it.dateAdded > existing.latestDate) {
+                    existing.thumbnailUri = it.thumbnailUri
+                    existing.latestDate = it.dateAdded
+                }
+            }
+        }
 
-        return@withContext finalList
+        val allAlbums = mutableListOf<Album>()
+        if (allImageCount > 0) {
+            allAlbums += Album(
+                name = MediaBucketType.ALL_IMAGES.label,
+                itemCount = allImageCount,
+                thumbnailUri = allImageThumbnail,
+                imageCount = allImageCount,
+                videoCount = 0
+            )
+        }
+        if (allVideoCount > 0) {
+            allAlbums += Album(
+                name = MediaBucketType.ALL_VIDEOS.label,
+                itemCount = allVideoCount,
+                thumbnailUri = allVideoThumbnail,
+                imageCount = 0,
+                videoCount = allVideoCount
+            )
+        }
+
+        val folderAlbums = albumMap.values.map {
+            Album(
+                name = it.name,
+                itemCount = it.imageCount + it.videoCount,
+                thumbnailUri = it.thumbnailUri,
+                imageCount = it.imageCount,
+                videoCount = it.videoCount
+            )
+        }
+
+        return@withContext allAlbums + folderAlbums
     }
 
-    private fun fetchAlbumsFromMediaStore(uri: Uri, isVideo: Boolean): List<Album> {
-        var mediaCount = 0
-        var thumbnailUri: Uri? = null
+    private fun fetchAlbumsFromStore(uri: Uri, mediaType: Int): List<TempAlbumData> {
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.MediaColumns.DATA
+            MediaStore.MediaColumns.BUCKET_ID,
+            MediaStore.MediaColumns.DATE_ADDED
         )
 
-        val albumMap = mutableMapOf<String, Pair<Uri, Int>>() // bucketKey -> (thumbUri, count)
+        val albumList = mutableListOf<TempAlbumData>()
 
         contentResolver.query(
             uri,
@@ -79,52 +120,45 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
             "${MediaStore.MediaColumns.DATE_ADDED} DESC"
         )?.use { cursor ->
             val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            val bucketNameIndex =
-                cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
-            val dataIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+            val bucketNameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+            val dateAddedIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+
+            val bucketCountMap = mutableMapOf<String, TempAlbumData>()
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idIndex)
                 val bucketName = cursor.getString(bucketNameIndex) ?: MediaBucketType.INTERNAL_STORAGE.label
-                val path = cursor.getString(dataIndex)?.lowercase() ?: continue
+                val dateAdded = cursor.getLong(dateAddedIndex)
 
-                if (path.contains("/cache") || path.contains(".nomedia") || path.contains("thumbnails")) {
-                    continue
+                val contentUri = when (mediaType) {
+                    MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE ->
+                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                    MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO ->
+                        ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+                    else -> continue
                 }
 
-                val contentUri = Uri.withAppendedPath(uri, id.toString())
-
-                mediaCount++
-                if (thumbnailUri == null) thumbnailUri = contentUri
-
-                if (!albumMap.containsKey(bucketName)) {
-                    albumMap[bucketName] = Pair(contentUri, 1)
+                val entry = bucketCountMap[bucketName]
+                if (entry == null) {
+                    bucketCountMap[bucketName] = TempAlbumData(
+                        name = bucketName,
+                        count = 1,
+                        thumbnailUri = contentUri,
+                        dateAdded = dateAdded
+                    )
                 } else {
-                    val (existingUri, count) = albumMap[bucketName]!!
-                    albumMap[bucketName] = Pair(existingUri, count + 1)
+                    entry.count++
+                    if (dateAdded > entry.dateAdded) {
+                        entry.thumbnailUri = contentUri
+                        entry.dateAdded = dateAdded
+                    }
                 }
             }
+
+            albumList.addAll(bucketCountMap.values)
         }
 
-        return listOf(
-            Album(
-                name = if (isVideo) MediaBucketType.ALL_VIDEOS.label else MediaBucketType.ALL_IMAGES.label,
-                itemCount = mediaCount,
-                thumbnailUri = thumbnailUri,
-                mediaItems = listOf(),
-                imageCount = if (!isVideo) mediaCount else 0,
-                videoCount = if (isVideo) mediaCount else 0
-            )
-        ) + albumMap.map { (folderName, value) ->
-            Album(
-                name = folderName,
-                itemCount = value.second,
-                thumbnailUri = value.first,
-                mediaItems = emptyList(),
-                imageCount = if (!isVideo) value.second else 0,
-                videoCount = if (isVideo) value.second else 0
-            )
-        }
+        return albumList
     }
 
     fun getPagedMedia(bucketName: String): Flow<PagingData<Media>> {
@@ -135,4 +169,12 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
             }
         ).flow
     }
+
+    // Temporary class for internal grouping
+    private data class TempAlbumData(
+        val name: String,
+        var count: Int,
+        var thumbnailUri: Uri?,
+        var dateAdded: Long
+    )
 }
