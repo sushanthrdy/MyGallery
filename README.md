@@ -15,7 +15,7 @@ MyGallery is a modern Android application that allows users to browse, view, and
 *   **Hilt:** Uses Hilt for dependency injection.
 *   **Navigation:** Uses the Navigation component for in-app navigation.
 *   **AlertDialog:** Uses alert dialog for showing error and permission.
-
+---
 ## 🛠️ Tech Stack
 
 *   **Kotlin:** The primary programming language.
@@ -29,7 +29,7 @@ MyGallery is a modern Android application that allows users to browse, view, and
 *   **Coroutines:** For asynchronous programming.
 *   **MediaStore:** For accessing media files.
 *   **ContentObserver:** For observing the media store.
-
+---
 ## 🧩 Architecture
 
 The app follows a clean architecture pattern, separating concerns into distinct layers:
@@ -47,7 +47,7 @@ The app follows a clean architecture pattern, separating concerns into distinct 
     * **`DialogUtils`:** For showing alert dialog.
     * **`GridSpacingItemDecoration`:** For adding spacing in grid layout.
     * **`MediaContentObserver`:** For observing the media store.
-
+---
 ## 🧩 Setup and Installation
 
 1.  **Clone the Repository:**
@@ -64,7 +64,7 @@ The app follows a clean architecture pattern, separating concerns into distinct 
 
     *   Click the "Run" button (green play icon) in Android Studio.
     *   Select an emulator or a connected device to run the app.
-
+---
 ## 📸 Screenshots  
 
 <div>
@@ -73,3 +73,21 @@ The app follows a clean architecture pattern, separating concerns into distinct 
 <img src="screenshots/MediaScreen.png" width="250"/>
 <img src="screenshots/MediaFullScreen.png" width="250"/>
 </div>
+
+---
+## 🤝 Contributing  
+
+Contributions are welcome! Please fork the repository and create a pull request.  
+To submit a pull request, follow these steps:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-name`).
+3. Commit your changes (`git commit -am 'Add feature'`).
+4. Push to the branch (`git push origin feature-name`).
+5. Create a new pull request.
+
+---
+
+## 📜 License  
+
+This project is licensed under the [Apache License 2.0](LICENSE).  
