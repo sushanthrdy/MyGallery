@@ -14,150 +14,154 @@ class MediaStorePagingSource(
 ) : PagingSource<Long, Media>() {
 
     override suspend fun load(params: LoadParams<Long>): LoadResult<Long, Media> {
-        val pageSize = params.loadSize
-        val lastDateAdded = params.key ?: Long.MAX_VALUE
+        try {
+            val pageSize = params.loadSize
+            val lastDateAdded = params.key ?: Long.MAX_VALUE
 
-        val mediaList = mutableListOf<Media>()
+            val mediaList = mutableListOf<Media>()
 
-        val collection = MediaStore.Files.getContentUri("external")
+            val collection = MediaStore.Files.getContentUri("external")
 
-        val projection = arrayOf(
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.MEDIA_TYPE,
-            MediaStore.Files.FileColumns.DATA,
-            MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.Files.FileColumns.DATE_ADDED,
-            MediaStore.Files.FileColumns.DURATION,
-        )
+            val projection = arrayOf(
+                MediaStore.Files.FileColumns._ID,
+                MediaStore.Files.FileColumns.MEDIA_TYPE,
+                MediaStore.Files.FileColumns.DATA,
+                MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.Files.FileColumns.DATE_ADDED,
+                MediaStore.Files.FileColumns.DURATION,
+            )
 
-        val (selection, selectionArgs) = when (bucketName) {
-            MediaBucketType.ALL_IMAGES.label -> {
-                Pair(
-                    """
+            val (selection, selectionArgs) = when (bucketName) {
+                MediaBucketType.ALL_IMAGES.label -> {
+                    Pair(
+                        """
                 ${MediaStore.Files.FileColumns.MEDIA_TYPE}=?
                 AND ${MediaStore.Files.FileColumns.DATE_ADDED} < ?
                 """.trimIndent(),
-                    arrayOf(
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
-                        lastDateAdded.toString()
+                        arrayOf(
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
+                            lastDateAdded.toString()
+                        )
                     )
-                )
-            }
-            MediaBucketType.ALL_VIDEOS.label -> {
-                Pair(
-                    """
+                }
+                MediaBucketType.ALL_VIDEOS.label -> {
+                    Pair(
+                        """
                 ${MediaStore.Files.FileColumns.MEDIA_TYPE}=?
                 AND ${MediaStore.Files.FileColumns.DATE_ADDED} < ?
                 """.trimIndent(),
-                    arrayOf(
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
-                        lastDateAdded.toString()
+                        arrayOf(
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
+                            lastDateAdded.toString()
+                        )
                     )
-                )
-            }
-            MediaBucketType.INTERNAL_STORAGE.label -> {
-                Pair(
-                    """
+                }
+                MediaBucketType.INTERNAL_STORAGE.label -> {
+                    Pair(
+                        """
                 (${MediaStore.Files.FileColumns.MEDIA_TYPE}=? OR ${MediaStore.Files.FileColumns.MEDIA_TYPE}=?)
                 AND ${MediaStore.Files.FileColumns.DATA} LIKE ? 
                 AND ${MediaStore.Files.FileColumns.DATA} NOT LIKE ?
                 AND ${MediaStore.Files.FileColumns.DATE_ADDED} < ?
                 """.trimIndent(),
-                    arrayOf(
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
-                        "/storage/emulated/0/%",
-                        "/storage/emulated/0/%/%",
-                        lastDateAdded.toString()
+                        arrayOf(
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
+                            "/storage/emulated/0/%",
+                            "/storage/emulated/0/%/%",
+                            lastDateAdded.toString()
+                        )
                     )
-                )
-            }
-            else -> {
-                Pair(
-                    """
+                }
+                else -> {
+                    Pair(
+                        """
                 (${MediaStore.Files.FileColumns.MEDIA_TYPE}=? OR ${MediaStore.Files.FileColumns.MEDIA_TYPE}=?)
                 AND ${MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME}=?
                 AND ${MediaStore.Files.FileColumns.DATE_ADDED} < ?
                 """.trimIndent(),
-                    arrayOf(
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
-                        bucketName,
-                        lastDateAdded.toString()
+                        arrayOf(
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
+                            bucketName,
+                            lastDateAdded.toString()
+                        )
                     )
-                )
+                }
             }
-        }
 
-        val sortOrder = "${MediaStore.Files.FileColumns.DATE_ADDED} DESC"
+            val sortOrder = "${MediaStore.Files.FileColumns.DATE_ADDED} DESC"
 
-        context.contentResolver.query(
-            collection,
-            projection,
-            selection,
-            selectionArgs,
-            sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
-            val typeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
-            val bucketColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
-            val dateAddedColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_ADDED)
-            val videoDurationColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DURATION)
+            context.contentResolver.query(
+                collection,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+            )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
+                val typeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
+                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
+                val bucketColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
+                val dateAddedColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_ADDED)
+                val videoDurationColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DURATION)
 
-            while (cursor.moveToNext() && mediaList.size < pageSize) {
-                val id = cursor.getLong(idColumn)
-                val mediaType = cursor.getInt(typeColumn)
-                val filePath = cursor.getString(dataColumn)
-                if (filePath.contains("/cache", ignoreCase = true) ||
-                    filePath.contains(".nomedia", ignoreCase = true) ||
-                    filePath.contains("thumbnails", ignoreCase = true)
-                ) {
-                    continue
-                }
-                val folder = cursor.getString(bucketColumn)?:MediaBucketType.INTERNAL_STORAGE.label
-                val dateAdded = cursor.getLong(dateAddedColumn)
+                while (cursor.moveToNext() && mediaList.size < pageSize) {
+                    val id = cursor.getLong(idColumn)
+                    val mediaType = cursor.getInt(typeColumn)
+                    val filePath = cursor.getString(dataColumn)
+                    if (filePath.contains("/cache", ignoreCase = true) ||
+                        filePath.contains(".nomedia", ignoreCase = true) ||
+                        filePath.contains("thumbnails", ignoreCase = true)
+                    ) {
+                        continue
+                    }
+                    val folder = cursor.getString(bucketColumn)?:MediaBucketType.INTERNAL_STORAGE.label
+                    val dateAdded = cursor.getLong(dateAddedColumn)
 
-                val videoDuration = if (mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO) {
-                    cursor.getLong(videoDurationColumn)
-                } else {
-                    null
-                }
+                    val videoDuration = if (mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO) {
+                        cursor.getLong(videoDurationColumn)
+                    } else {
+                        null
+                    }
 
-                val contentUri = when (mediaType) {
-                    MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE ->
-                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                    val contentUri = when (mediaType) {
+                        MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE ->
+                            ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                    MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO ->
-                        ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+                        MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO ->
+                            ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
-                    else -> continue
-                }
+                        else -> continue
+                    }
 
-                mediaList.add(
-                    Media(
-                        id = id,
-                        contentUri = contentUri,
-                        filePath = filePath,
-                        folderName = folder,
-                        dateAdded = dateAdded,
-                        isVideo = mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO,
-                        videoDuration = videoDuration
+                    mediaList.add(
+                        Media(
+                            id = id,
+                            contentUri = contentUri,
+                            filePath = filePath,
+                            folderName = folder,
+                            dateAdded = dateAdded,
+                            isVideo = mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO,
+                            videoDuration = videoDuration
+                        )
                     )
-                )
+                }
             }
+
+            val nextKey = mediaList.lastOrNull()?.dateAdded
+
+            return LoadResult.Page(
+                data = mediaList,
+                prevKey = null,
+                nextKey = nextKey
+            )
+        }catch (e:Exception){
+            return LoadResult.Error(e)
         }
-
-        val nextKey = mediaList.lastOrNull()?.dateAdded
-
-        return LoadResult.Page(
-            data = mediaList,
-            prevKey = null,
-            nextKey = nextKey
-        )
     }
 
     override fun getRefreshKey(state: PagingState<Long, Media>): Long? = state.anchorPosition?.let { state.closestItemToPosition(it)?.dateAdded }

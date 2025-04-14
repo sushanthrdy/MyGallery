@@ -163,7 +163,7 @@ class MediaRepository @Inject constructor(@ApplicationContext private val contex
 
     fun getPagedMedia(bucketName: String): Flow<PagingData<Media>> {
         return Pager(
-            config = PagingConfig(pageSize = 100, prefetchDistance = 80, enablePlaceholders = false),
+            config = PagingConfig(initialLoadSize = 100,pageSize = 100, prefetchDistance = 80, enablePlaceholders = false),
             pagingSourceFactory = {
                 MediaStorePagingSource(context, bucketName)
             }

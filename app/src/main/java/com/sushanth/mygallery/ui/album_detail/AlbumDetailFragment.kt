@@ -1,21 +1,24 @@
 package com.sushanth.mygallery.ui.album_detail
 
-import androidx.fragment.app.viewModels
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.sushanth.mygallery.R
 import com.sushanth.mygallery.databinding.FragmentAlbumDetailBinding
+import com.sushanth.mygallery.utils.DialogUtils
 import com.sushanth.mygallery.utils.GridSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -33,9 +36,7 @@ class AlbumDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding =  FragmentAlbumDetailBinding.inflate(inflater, container, false)
-
-        Log.i("MyTag", "imageCount: ${args.imageCount} || videoCount: ${args.videoCount}")
+        binding = FragmentAlbumDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -45,6 +46,23 @@ class AlbumDetailFragment : Fragment() {
         setOnClickListeners()
         setupAdapter()
         setupRecyclerView()
+        viewModel.loadMedia(args.bucketName)
+        mediaAdapter.addLoadStateListener { loadState ->
+            val errorState = loadState.source.append as? LoadState.Error
+                ?: loadState.source.prepend as? LoadState.Error
+                ?: loadState.append as? LoadState.Error
+                ?: loadState.prepend as? LoadState.Error
+                ?: loadState.refresh as? LoadState.Error
+            errorState?.let {
+                DialogUtils.showAlertDialog(
+                    requireContext(),
+                    title = getString(R.string.app_name),
+                    message = "Error loading data",
+                    positiveButtonText = "Ok",
+                    isCancelable = false,
+                    positiveButtonAction = { findNavController().popBackStack() })
+            }
+        }
         observeMedia()
     }
 
@@ -75,7 +93,10 @@ class AlbumDetailFragment : Fragment() {
     private fun setupAdapter() {
         mediaAdapter = AlbumDetailAdapter { media ->
             Glide.with(requireContext()).load(media.contentUri).preload()
-            val action = AlbumDetailFragmentDirections.actionAlbumDetailFragmentToMediaViewFragment(media.contentUri.toString(),media.isVideo)
+            val action = AlbumDetailFragmentDirections.actionAlbumDetailFragmentToMediaViewFragment(
+                media.contentUri.toString(),
+                media.isVideo
+            )
             findNavController().navigate(action)
         }
     }
@@ -110,8 +131,10 @@ class AlbumDetailFragment : Fragment() {
 
     private fun observeMedia() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.getPagedMedia(bucketName = args.bucketName).collectLatest { pagingData ->
-                mediaAdapter.submitData(pagingData)
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.mediaFlow?.collectLatest { pagingData ->
+                    mediaAdapter.submitData(pagingData)
+                }
             }
         }
     }
